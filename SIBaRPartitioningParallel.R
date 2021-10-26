@@ -16,17 +16,49 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
                              index=rep(1,length(poll)), threshold = 50,
                              length_tolerance = 0.05){
 
-  initialPartition <- partitionPoints(poll,time,bootstrap_iterations)
+  initial_partition <- partitionPoints(poll,time,bootstrap_iterations,
+                                       transformString = transform_string,
+                                       cores = cores, 
+                                       index = index)
+  
+  total_time <- initial_partition$Timestamps
+  total_poll <- initial_partition$Poll
+  total_states <- initial_partition$States
+  total_index <- initial_partition$Index
   
   ## Initiate the correction routine
-  initial_evaluation <- fittedLineClassifier(initialPartition$State,initialPartition$Poll,
-                                             initialPartition$Timestamps,initialPartition$Index,
+  initial_evaluation <- fittedLineClassifier(total_states,total_poll,
+                                             total_time,total_index,
                                              threshold = 50)
   
   ## If there are splits deemed misclassified by the given threshold, recursively
   ## correct using partitionCorrection
+  initial_class_res <- !initial_evaluation[[1]]
   
+  if(any(initial_class_res)){
+    
+    print("Correcting misclassified data")
+    
+    misclassed_splits <- tibble("State"=total_states,"Pollutant"=total_poll,
+                                "Timestamps"=total_time,"Index"=total_index,
+                                "Vector_Loc"=seq(1,length(total_states),1),
+                                "Month"=month(total_time),
+                                "Day"=mday(total_time)) %>%
+    group_split(Month,Day,Index,.keep=FALSE) %>%
+    .[initial_class_res]
+    
+    for(n in 1:length(misclassed_splits)){
+      corrected_states <- recursiveCorrections(misclassed_splits[[n]],length_tolerance)
+      total_states[misclassed_splits[[n]]$Vector_Loc] <- corrected_states
+    }
+    
+  } else {
+    print("No additional corrections to data were made")
+  }
   
+  final_partition <- tibble("Timestamps"=total_time,"Poll"=total_poll,
+                            "States"=total_states,"Index"=total_index)
+  return(final_partition)
 }
 
 validDayIdxReturn <- function(time,counts){
@@ -135,31 +167,15 @@ partitionPoints <- function(poll,time,bootstrapIters,transformString="none",minT
   return(final.results)
 }
 
-stateEvaluation <- function(meas,state)
-{
-  if(length(which(is.na(meas)))>(length(meas)/2)){
-    return(NA)
-  }
-  if((length(meas[state==1])==0) | (length(meas[state==2])==0)){
-    return(TRUE)
-  }
-  if(mean(meas[state==1],na.rm=T)<mean(meas[state==2],na.rm=T)){
-    return(TRUE)
-  } else{ 
-    return(FALSE)
-  }
-}
-## 10/25 Rewrite index to be optional factor passed in. Determine suitable 
-## default behavior
-fittedLineClassifier <- function(state,poll,timestamps,index,threshold,dir,saveGraphsBool){
-  data.splits <- tibble("state"=state,"pollutant"=poll,"timestamps"=timestamps,"Index"=index) %>%
+fittedLineClassifier <- function(state,poll,timestamps,index,threshold,saveGraphsBool=F,...){
+  data_splits <- tibble("state"=state,"pollutant"=poll,"timestamps"=timestamps,"Index"=index) %>%
     cbind("Month"=month(timestamps)) %>%
     cbind("Day"=mday(timestamps)) %>%
-    group_split(Month,Day,Index,.keep=FALSE)
+    group_split(Month,Day,Index,.keep = F)
   
-  classifier <- logical(length(data.splits))
-  for(i in 1:length(data.splits)){
-    temp.data <- data.splits[[i]]
+  classifier <- logical(length(data_splits))
+  for(i in 1:length(data_splits)){
+    temp.data <- data_splits[[i]]
     temp.poll <- temp.data$pollutant
     temp.state <- temp.data$state
     temp.times <- temp.data$timestamps
@@ -188,6 +204,7 @@ fittedLineClassifier <- function(state,poll,timestamps,index,threshold,dir,saveG
     }
     if(saveGraphsBool)
     {
+      dir <- ..1
       png(filename = paste0(dir,'Day ',i, '.png'),
           width = 480, height = 480, units = "px", pointsize = 12,
           bg = "white", res = NA, family = "", restoreConsole = TRUE,
@@ -200,7 +217,6 @@ fittedLineClassifier <- function(state,poll,timestamps,index,threshold,dir,saveG
     
   }
   pct.correct <- length(which(classifier))/length(classifier)*100
-  print(pct.correct)
   return(list(classifier,pct.correct))
 }
 
@@ -264,9 +280,9 @@ partitionCorrection <- function(poll,time,bootstrapIters){
 }
 
 recursiveCorrections <- function(misclassed.split,tol){
-  old.series <- list(list(misclassed.split$pollutant,misclassed.split$timestamps,misclassed.split$state))
+  old.series <- list(list(misclassed.split$Pollutant,misclassed.split$Timestamps,misclassed.split$State))
   classified.res <- F
-  length.tolerance <- tol*length(misclassed.split$pollutant)
+  length.tolerance <- tol*length(misclassed.split$Pollutant)
   while(any(!classified.res)){
     # Continue to perform partition corrections
     new.series <- list()
@@ -293,9 +309,7 @@ recursiveCorrections <- function(misclassed.split,tol){
                                      new.series[[k]][[1]],
                                      new.series[[k]][[2]],
                                      idx,
-                                     50,
-                                     dir="Blah",
-                                     F)
+                                     50)
         classified.res[k] <- temp[[1]]
       } else {
         classified.res[k] <- T
