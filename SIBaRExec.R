@@ -28,7 +28,8 @@ temp_tibble <- tibble("Times"=Poll.times.c1,"Meas"=Poll.measurements.c1,
 
 ## First, we create an initial point partition. We do this by calling the 
 ## partitionPoints function from the SIBaRPartitioningParallel script file
-partitionOutput <- partitionRoutine(temp_tibble$Meas,temp_tibble$Times,2,transform_string = "log")
+partitionOutput <- partitionRoutine(temp_tibble$Meas,temp_tibble$Times,2,transform_string = "log",
+                                    length_tolerance = 0.2)
 
 ## To visualize our point paritions, we can make a simple call to plot.
 ## The first list entry of partition output are the measurements input into 

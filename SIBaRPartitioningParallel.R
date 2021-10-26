@@ -289,7 +289,7 @@ recursiveCorrections <- function(misclassed.split,tol){
     idx <- 1
     for(j in 1:length(old.series)){
       if(classified.res[j]==F & (length(old.series[[j]][[1]]) > length.tolerance)){
-        output <- partitionCorrection(old.series[[j]][[1]],old.series[[j]][[2]],50)
+        output <- partitionCorrection(old.series[[j]][[1]],old.series[[j]][[2]],10)
         new.series[[idx]] <- list(output[[1]],output[[2]],output[[3]])
         new.series[[idx+1]] <- list(output[[4]],output[[5]],output[[6]])
         idx <- idx+2
