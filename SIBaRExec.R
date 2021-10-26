@@ -1,5 +1,9 @@
-require(depmixS4)
 require(tidyverse)
+## Source in files containing SIBaR functions
+source(paste0(getwd(),'/SIBaRUtils.R'))
+source(paste0(getwd(),'/SIBaRPartitioningParallel.R'))
+source(paste0(getwd(),'/SIBaRSplineFit.R'))
+source(paste0(getwd(),'/SIBaRRecursiveCorrections.R'))
 
 ## To get started, copy and paste the directory that holds demo data next to dir
 dir <- getwd()
@@ -11,12 +15,6 @@ demo_data <- read.csv(paste0(dir,"/DemoData.csv")) %>%
   mutate("NOx"=Original,.keep="unused") %>%
   drop_na()
 
-## Source in files containing SIBaR functions
-source(paste0(getwd(),'/SIBaRUtils.R'))
-source(paste0(getwd(),'/SIBaRPartitioningParallel.R'))
-source(paste0(getwd(),'/SIBaRSplineFit.R'))
-source(paste0(getwd(),'/SIBaRRecursiveCorrections.R'))
-
 ## Take the timestamps and NOx measurements out of the dataframe, store as 
 ## individual vectors
 times <- demo_data$Timestamps
@@ -27,11 +25,33 @@ NOx <- demo_data$NOx
 partitionOutput <- partitionPoints(NOx,times,25,transformString = "log")
 
 ## To visualize our point paritions, we can make a simple call to plot.
+## The first list entry of partition output are the measurements input into 
+## the function, less any measurements corresponding to time periods shorter
+## than minTimePts.
+## The second list entry are the timestamps corresponding to the measurements
+## in the first list entry
+## The third list entry are the states returned by the partitioning step.
+## 1 = background, 2 = non-background
 
-plot(partitionOutput[[1]]~partitionOutput[[2]],col=partitionOutput[[3]],
+plot(Poll~Timestamps,data=partitionOutput,
+     col=States,
      xlab = "Time",
      ylab = "ln(NOx+1)",
      main = "Visualizing the partitioning step")
+
+## Next, we fit a spline to our partitioned data. 
+background <- sibarSplineFit(partitionOutput$Poll,partitionOutput$Timestamps,
+                             partitionOutput$States)
+
+## Visualize the background signal
+plot(Poll~Timestamps,data=partitionOutput,
+     col=States,
+     xlab = "Time",
+     ylab = "ln(NOx+1)",
+     main = "Visualizing the partitioning step")
+lines(partitionOutput$Timestamps,background,col="blue",lwd=2)
+
+## Run diagnostics on the fit to ensure it's of high quality
 
 
 
