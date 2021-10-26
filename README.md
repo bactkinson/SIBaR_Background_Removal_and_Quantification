@@ -6,7 +6,7 @@ Overview:
 Rather than implement a flat or rolling percentile to estimate background in air pollution time series, SIBaR casts the background problem as a time series regime change problem and utilizes time series regime change modeling techniques to solve it. We visualize the car going
 through a series of regime changes that informs when it's in a clean state from when it's in a dirty state. We then take all the points designated as the clean state and fit a spline to them.
 
-![Transition Image](/Misc/'Transition Figure.jpg')
+![Transition Image](/Misc/Transition_Figure.jpg)
 
 How to use:
 The files SIBaRUtils.R, SIBaRSplineFit.R, and SIBaRPartitioningParallel.R contain the functions called to run the SIBaR routine in SIBaRExec.R. Feel free to use SIBaRExec.R as your own template or write your own R script to incorporate the variety of SIBaR
