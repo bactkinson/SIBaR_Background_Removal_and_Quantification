@@ -3,7 +3,7 @@ require(lubridate)
 require(zoo)
 require(dplyr)
 require(tidyverse)
-## Read in the poll, state, time data
+
 stateEvaluation <- function(meas,state)
 {
   if(length(which(is.na(meas)))>(length(meas)/2)){
