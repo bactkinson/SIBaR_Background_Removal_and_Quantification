@@ -2,6 +2,21 @@
 require(parallel)
 require(depmixS4)
 
+validDayIdxReturn <- function(time,counts){
+  idxs <- vector(,)
+  ms <- month(time)
+  ds <- day(time)
+  df <- data.frame("month"=ms,"day"=ds)
+  unique.entries <- unique(df)
+  for (i in 1:nrow(unique.entries)){
+    matching.idxs <- which((ms==unique.entries[i,1]) & (ds==unique.entries[i,2]))
+    if (length(matching.idxs)>=counts){
+      idxs <- c(idxs,matching.idxs)
+    }
+  }
+  return(idxs)
+}
+
 applyTimeDepmix <- function(poll,time){
   fm.temp <- tryCatch(
     {
@@ -16,46 +31,41 @@ applyTimeDepmix <- function(poll,time){
   return(fm.temp)
 }
 
-partitionPoints <- function(poll,time,lat,long,index,bootstrapIters,transformString){
-  idxValid <- validDayIdxReturn(time,600)
+partitionPoints <- function(poll,time,bootstrapIters,transformString,minTimePts=600,
+                            cores=parallel::detectCores()-1,
+                            index=rep(1,length(poll))){
+
+  idxValid <- validDayIdxReturn(time,minTimePts)
   poll <- poll[idxValid]
   time <- time[idxValid]
-  lat <- lat[idxValid]
-  long <- long[idxValid]
   index <- index[idxValid]
-  poll.days <- mday(time)
-  day.breaks <- which(diff(poll.days)!=0)
+  
   ## Preallocation
   poll.s1 <- vector(,)
   poll.s2 <- vector(,)
   state.vec <- vector(,)
   time.s1 <- vector(,)
   time.s2 <- vector(,)
-  total.idx <- length(day.breaks)+1
-  # value for convergence issues.
-  # Analyze densities of data and time distributions of data
   mod.list <- list()
   ll.storage <- numeric(bootstrapIters)
-  no.cores <- detectCores()-1
-  cl <- makeCluster(no.cores)
+  
+  cl <- makeCluster(cores)
   clusterExport(cl, varlist = c("applyTimeDepmix"), envir = .GlobalEnv)
   clusterExport(cl, list("bootstrapIters"), envir = environment())
+  
   if(transformString=="log"){
     poll[poll<0] <- 0
-    poll <- log(poll+1)
+    poll <- log1p(poll)
   }
-  for (i in 1:total.idx){
+  
+  data_splits <- tibble("Poll"=poll,"Time"=time,"Index"=index,"Month"=month(time),"Day"=mday(time))%>%
+    group_split(Month,Day,Index,.keep = "unused")
+  
+  for (i in 1:length(data_splits)){
     print(i)
-    if (i==1){
-      temp.poll <- poll[1:day.breaks[i]]
-      temp.times <- time[1:day.breaks[i]]
-    } else if (i==(length(day.breaks)+1)){
-      temp.poll <- poll[(day.breaks[length(day.breaks)]+1):length(poll)]
-      temp.times <- time[(day.breaks[length(day.breaks)]+1):length(time)]
-    } else {
-      temp.poll <- poll[(day.breaks[i-1]+1):day.breaks[i]]
-      temp.times <- time[(day.breaks[i-1]+1):day.breaks[i]]
-    }
+    temp.poll <- data_splits[[i]]$Poll
+    temp.times <- data_splits[[i]]$Time
+  
     ## Fit the HMM to the day i of data
     temp.list <- list(temp.poll,temp.times)
     boot.list <- list()
@@ -92,6 +102,6 @@ partitionPoints <- function(poll,time,lat,long,index,bootstrapIters,transformStr
   stopCluster(cl)
   time.s1 <- as.POSIXct(time.s1,tz="US/Central",origin="1970-01-01")
   time.s2 <- as.POSIXct(time.s2,tz="US/Central",origin="1970-01-01")
-  final.results <- list(poll,time,lat,long,index,state.vec,poll.s1,time.s1,poll.s2,time.s2)
+  final.results <- list(poll,time,state.vec,poll.s1,time.s1,poll.s2,time.s2)
   return(final.results)
 }

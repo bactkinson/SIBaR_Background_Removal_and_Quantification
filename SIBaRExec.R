@@ -4,16 +4,36 @@ require(tidyverse)
 ## To get started, copy and paste the directory that holds demo data next to dir
 dir <- getwd()
 
+## Read in the data. If using your own data, be sure to have some process
+## which accounts for NA removal as functions won't work with NAs inserted.
 demo_data <- read.csv(paste0(dir,"/DemoData.csv")) %>%
-  mutate("Timestamps"=as.POSIXct(Time,format="%Y-%m-%d %H:%M:%S",tz="US/Central"),.keep="unused")
+  mutate("Timestamps"=as.POSIXct(Time,format="%Y-%m-%d %H:%M:%S",tz="US/Central"),.keep="unused") %>%
+  mutate("NOx"=Original,.keep="unused") %>%
+  drop_na()
 
-## Our goal is to reproduce Figure 1 in the manuscript
-## The results are contained within demo data
-plot(Original~Timestamps,col=State,data=demo_data,
-     main = "These are the state designations that appear in the manuscript",
-     ylab = "NOx (ppb)",
-     ylim = c(-5,100),
-     pch=19)
+## Source in files containing SIBaR functions
+source(paste0(getwd(),'/SIBaRUtils.R'))
+source(paste0(getwd(),'/SIBaRPartitioningParallel.R'))
+source(paste0(getwd(),'/SIBaRSplineFit.R'))
+source(paste0(getwd(),'/SIBaRRecursiveCorrections.R'))
+
+## Take the timestamps and NOx measurements out of the dataframe, store as 
+## individual vectors
+times <- demo_data$Timestamps
+NOx <- demo_data$NOx
+
+## First, we create an initial point partition. We do this by calling the 
+## partitionPoints function from the SIBaRPartitioningParallel script file
+partitionOutput <- partitionPoints(NOx,times,25,transformString = "log")
+
+## To visualize our point paritions, we can make a simple call to plot.
+
+plot(partitionOutput[[1]]~partitionOutput[[2]],col=partitionOutput[[3]],
+     xlab = "Time",
+     ylab = "ln(NOx+1)",
+     main = "Visualizing the partitioning step")
+
+
 
 ## First, we need to log transform the NOx data. We'll create a new tibble
 ## and work from there

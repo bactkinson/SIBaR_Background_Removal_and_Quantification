@@ -17,7 +17,8 @@ stateEvaluation <- function(meas,state)
     return(FALSE)
   }
 }
-
+## 10/25 Rewrite index to be optional factor passed in. Determine suitable 
+## default behavior
 fittedLineClassifier <- function(state,poll,timestamps,index,threshold,dir,saveGraphsBool){
   data.splits <- tibble("state"=state,"pollutant"=poll,"timestamps"=timestamps,"Index"=index) %>%
     cbind("Month"=month(timestamps)) %>%
