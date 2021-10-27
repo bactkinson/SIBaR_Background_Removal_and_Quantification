@@ -21,12 +21,11 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
                                        cores = cores, 
                                        index = index)
   
-  total_time <- initial_partition$Timestamps
+  total_time <- initial_partition$Time
   total_poll <- initial_partition$Poll
   total_states <- initial_partition$States
   total_index <- initial_partition$Index
   
-  print(length_tolerance)
   ## Initiate the correction routine
   initial_evaluation <- fittedLineClassifier(total_states,total_poll,
                                              total_time,total_index,
@@ -54,11 +53,13 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
     }
     
   } else {
-    print("No additional corrections to data were made")
+    print("No additional corrections to classified data were made")
   }
   
   final_partition <- tibble("Timestamps"=total_time,"Poll"=total_poll,
                             "States"=total_states,"Index"=total_index)
+  
+  print("Partitioning step completed")
   return(final_partition)
 }
 
@@ -156,7 +157,7 @@ partitionPoints <- function(poll,time,bootstrapIters,transformString="none",minT
   ## Convert list of tibbles to aggregate tibble
   
   final.results <- data_splits[[1]]
-  for(j in 2:length(data_splits)) {print(j);final.results <- rbind(final.results,data_splits[[j]])}
+  for(j in 2:length(data_splits)) {final.results <- rbind(final.results,data_splits[[j]])}
   
   return(final.results)
 }
