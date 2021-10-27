@@ -26,6 +26,7 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
   total_states <- initial_partition$States
   total_index <- initial_partition$Index
   
+  print(length_tolerance)
   ## Initiate the correction routine
   initial_evaluation <- fittedLineClassifier(total_states,total_poll,
                                              total_time,total_index,
@@ -100,11 +101,6 @@ partitionPoints <- function(poll,time,bootstrapIters,transformString="none",minT
   index <- index[idxValid]
   
   ## Preallocation
-  poll.s1 <- vector(,)
-  poll.s2 <- vector(,)
-  state.vec <- vector(,)
-  time.s1 <- vector(,)
-  time.s2 <- vector(,)
   mod.list <- list()
   ll.storage <- numeric(bootstrapIters)
   
@@ -117,8 +113,8 @@ partitionPoints <- function(poll,time,bootstrapIters,transformString="none",minT
     poll <- log1p(poll)
   }
   
-  data_splits <- tibble("Poll"=poll,"Time"=time,"Index"=index,"Month"=month(time),"Day"=mday(time))%>%
-    group_split(Month,Day,Index,.keep = "unused")
+  data_splits <- tibble("Poll"=poll,"Time"=time,"Index"=index,"Month"=month(time),"Day"=mday(time),"States"=rep(0,length(poll)))%>%
+    group_split(Month,Day,Index,.keep = TRUE)
   
   for (i in 1:length(data_splits)){
     print(i)
@@ -152,18 +148,16 @@ partitionPoints <- function(poll,time,bootstrapIters,transformString="none",minT
       resulting.states[mirror.states==2] <- 1
       resulting.states[mirror.states==1] <- 2
     } 
-    poll.s1 <- c(poll.s1,temp.poll[resulting.states==1])
-    poll.s2 <- c(poll.s2,temp.poll[resulting.states==2])
-    time.s1 <- c(time.s1,temp.times[resulting.states==1])
-    time.s2 <- c(time.s2,temp.times[resulting.states==2])
-    state.vec <- c(state.vec,resulting.states)
+    
+    data_splits[[i]]$States <- resulting.states
   }
   stopCluster(cl)
-  time.s1 <- as.POSIXct(time.s1,tz="US/Central",origin="1970-01-01")
-  time.s2 <- as.POSIXct(time.s2,tz="US/Central",origin="1970-01-01")
-  final.results <- tibble("Timestamps"=time,"Poll"=poll,"States"=state.vec,"Index"=index)
   
-  # final.results <- list(poll,time,state.vec,poll.s1,time.s1,poll.s2,time.s2)
+  ## Convert list of tibbles to aggregate tibble
+  
+  final.results <- data_splits[[1]]
+  for(j in 2:length(data_splits)) {print(j);final.results <- rbind(final.results,data_splits[[j]])}
+  
   return(final.results)
 }
 
@@ -236,10 +230,10 @@ partitionCorrection <- function(poll,time,bootstrapIters){
     boot.list.a[[q]] <- temp.list.a
     boot.list.b[[q]] <- temp.list.b
   }
-  print("Begin model refitting")
+  
   mod.list.a <- lapply(boot.list.a, function(x) applyTimeDepmix(unlist(x[1]),unlist(x[2])))
   mod.list.b <- lapply(boot.list.b, function(x) applyTimeDepmix(unlist(x[1]),unlist(x[2])))
-  print("End model refitting")
+  
   ll.storage.a <- numeric(bootstrapIters)
   ll.storage.b <- numeric(bootstrapIters)
   for(q in 1:bootstrapIters){
@@ -280,6 +274,7 @@ partitionCorrection <- function(poll,time,bootstrapIters){
 }
 
 recursiveCorrections <- function(misclassed.split,tol){
+  print("Begin model refitting")
   old.series <- list(list(misclassed.split$Pollutant,misclassed.split$Timestamps,misclassed.split$State))
   classified.res <- F
   length.tolerance <- tol*length(misclassed.split$Pollutant)
@@ -321,6 +316,6 @@ recursiveCorrections <- function(misclassed.split,tol){
   for(i in 1:length(old.series)){
     finalized.states <- c(finalized.states,old.series[[i]][[3]])
   }
+  print("End model refitting")
   return(finalized.states)
 }
-
