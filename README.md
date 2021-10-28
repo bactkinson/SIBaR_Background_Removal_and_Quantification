@@ -4,15 +4,17 @@ This repository contains code written in R for implmentation of State Informed B
 
 ### Overview
 Rather than implement a flat or rolling percentile to estimate background in air pollution time series, SIBaR casts the background estimation problem as a time series regime change problem and utilizes Hidden Markov models to solve it. We visualize the car going
-through a series of changes between a clean regime and a dirty regime. We then take all the points designated as the clean state and fit a spline to them.
+through a series of changes between a clean regime and a dirty regime. We then take all the points taken with clean regimes and fit a spline to them. The method can be broken into two steps: the partitioning step, or when we identify clean and dirty regimes within our time series, and the spline fitting step, or when we fit a spline across all points taken in the clean regimes determined in the partitioning step.
 
 ![Transition Image](/Misc/Transition_Figure.jpg)
 *Credits for this figure belong to Michael H. Actkinson.*
 
 ### How to Use
-The files SIBaRUtils.R, SIBaRSplineFit.R, and SIBaRPartitioningParallel.R all contain functions needed to run partitionRoutine and sibarSplineFit as shown in SIBaRExec.R. For most SIBaR use cases these are the two main functions to be utilized.
+The files SIBaRUtils.R, SIBaRSplineFit.R, and SIBaRPartitioningParallel.R all contain functions needed to run the partitioning step and spline fitting step as described in the overview. `partitionRoutine` is a wrapper function which calls functions from SIBaRUtils.R and SIBaRSplineFit.R to perform the spline fitting step. 'sibarSplineFit` is a function which takes output from the partitioning step and fits the sets of background splines. An example of these two routines in action is given in SIBaRExec.R. Feel free to use SIBaRExec.R as a template for your own SIBaR applications.
 
-### `partitionRoutine'
+It's worth noting that if the data contain timestamps from separate days, SIBaR will recognize and perform the partitioning and fitting steps on each day separately. For example, if the data contains 100 points taken on 1/1/2000 and 100 points on 1/2/2000, the partitioning step will be performed for the first set of 100 points, then the second set of 100 points. Background splines will then be fit to points taken in the clean regimes of each partitioning step separately.
+
+### `partitionRoutine`
 
 `partitionRoutine` is a wrapper function which calls additional functions in SIBaRUtils.R and SIBaRPartitioningParallel to perform the partitioning step on the data. Automatically implements recursive corrections routine if misclassified data are detected. partitionRoutine requires the following parameters:
 
@@ -35,12 +37,23 @@ removed during the partitioning step. Default is 600.
 
 `length_tolerance`: Parameter (as decimal, between 0 and 1) which determines stopping point for recursive corrections step. Recursive corrections won't happen for time series below this parameter multiplied by the original time series length.
 
-Once we obtain the output from partitionRoutine, we can fit background splines to it using the SIBaRSplineFit function available in the SIBaRSplineFit.R file.
+`save_misclassifications`: Boolean which determines whether SIBaR saves graphs (as a .png file) associated with initial classification decisions. Time series graphs are titled with either 'classified correctly' if the series categorizations are below the predetermined correction threshold and 'misclassified' if the series are above the predetermined correction threshold specified by `threshold`. Misclassified time series are automatically input into the SIBaR correction routine. If `save_misclassification` is `TRUE`, must be accompanied by `directory`
 
+`directory`: The directory to which SIBaR saves graphs of initial classification decisions.
 
+### `sibarSplineFit`
 
+Takes output from the partitioning step performed in `partitionRoutine` and fits background splines to data taken during clean regimes. Data from clean regimes on multiple days are fit to separate background splines. Calls functions from SIBaRSplineFit.R Parameters are:
 
+`poll`: Pollutant observations from the partitioning step.
 
+`timestamps`: Timestamps from the partitioning step.
+
+`state`: State designations determined in the partitioning step.
+
+`index`: Optional factor index taken from the partitioning step.
+
+If you have any issues in implementing this method or have suggestions for improvement, I'd love to hear about it. Please raise it as an issue ticket on the repository. Alternatively, you can email me at blake.w.actkinson@rice.edu.
 
 This work was created by Blake Actkinson with input from Robert Griffin and Katherine Ensor from Rice University. 
 
