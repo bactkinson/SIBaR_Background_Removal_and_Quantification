@@ -1,6 +1,6 @@
 # SIBaR_Background_Removal_and_Quantification
 
-This repository contains code written in R for implmentation of State Informed Background Removal (SIBaR). The method is described in detail in SIBaR: a new method for background quantification and removal, published in Atmospheric Measurement Techniques (https://amt.copernicus.org/articles/14/5809/2021/amt-14-5809-2021.html).
+This repository contains code written in R for implmentation of State Informed Background Removal (SIBaR). The method is described in detail in SIBaR: a new method for background quantification and removal from mobile air pollution measurements, published in Atmospheric Measurement Techniques (https://amt.copernicus.org/articles/14/5809/2021/amt-14-5809-2021.html).
 
 ### Overview
 Rather than implement a flat or rolling percentile to estimate background in air pollution time series, SIBaR casts the background estimation problem as a time series regime change problem and utilizes Hidden Markov models to solve it. We visualize the car going
