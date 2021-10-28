@@ -1,6 +1,8 @@
 require(zoo)
 require(lubridate)
 ## Utility functions to make processing data through SIBaR easier. 
+## These functions convert POSIXct timestamps to numerical days from year start
+## and seconds from start of day.
 daysFromYearStartConversion <- function(inputVec){
   outputVec <- numeric(length(inputVec))
   se <- as.numeric(difftime(inputVec[year(inputVec)==2017],as.POSIXct("2017-01-01 00:00:00 CDT"),units="days"))
@@ -15,7 +17,8 @@ secondsFromDayStartConversion <- function(inputVec){
   return(outputVec)
 }
 
-## Rewrite to remove NAs, match up timestamps inside function call  (10/25)
+## Function which smooths irregularly spaced time series given a prescribed
+## time interval.
 smoothData <- function(poll,time,t.interval){
   if(t.interval==0){
     return(list(poll,time))
@@ -27,6 +30,12 @@ smoothData <- function(poll,time,t.interval){
     smoothed.zoo <- zoo::rollapply(combined.zoo,t.interval,mean,na.rm=TRUE,fill=NA,partial=TRUE)
     Poll.smooth <- coredata(smoothed.zoo)
     Poll.times.final <- index(smoothed.zoo)
+    idxNA <- (is.na(Poll.smooth) | is.na(Poll.times.final))
+    Poll.times.final <- Poll.times.final[!idxNA]
+    Poll.smooth <- Poll.smooth[!idxNA]
+    idxMatch <- Poll.times.final %in% time
+    Poll.times.final <- Poll.times.final[idxMatch]
+    Poll.smooth <- Poll.smooth[idxMatch]
     return(list(Poll.smooth,Poll.times.final))
   }
 }

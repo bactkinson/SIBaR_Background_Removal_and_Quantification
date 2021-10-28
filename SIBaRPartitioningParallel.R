@@ -14,7 +14,9 @@ require(tidyverse)
 partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="none",
                              minTimePts = 600, cores=parallel::detectCores()-2,
                              index=rep(1,length(poll)), threshold = 50,
-                             length_tolerance = 0.05){
+                             length_tolerance = 0.05,
+                             save_misclassifications = F, 
+                             directory = getwd()){
 
   initial_partition <- partitionPoints(poll,time,bootstrap_iterations,
                                        transformString = transform_string,
@@ -29,7 +31,9 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
   ## Initiate the correction routine
   initial_evaluation <- fittedLineClassifier(total_states,total_poll,
                                              total_time,total_index,
-                                             threshold = 50)
+                                             threshold = 50,
+                                             saveGraphsBool = save_misclassifications,
+                                             directory = directory)
   
   ## If there are splits deemed misclassified by the given threshold, recursively
   ## correct using partitionCorrection
@@ -157,12 +161,14 @@ partitionPoints <- function(poll,time,bootstrapIters,transformString="none",minT
   ## Convert list of tibbles to aggregate tibble
   
   final.results <- data_splits[[1]]
-  for(j in 2:length(data_splits)) {final.results <- rbind(final.results,data_splits[[j]])}
+  if (length(data_splits)>1){
+    for(j in 2:length(data_splits)) {final.results <- rbind(final.results,data_splits[[j]])}
+  }
   
   return(final.results)
 }
 
-fittedLineClassifier <- function(state,poll,timestamps,index,threshold,saveGraphsBool=F,...){
+fittedLineClassifier <- function(state,poll,timestamps,index,threshold,saveGraphsBool=F,directory = getwd()){
   data_splits <- tibble("state"=state,"pollutant"=poll,"timestamps"=timestamps,"Index"=index) %>%
     cbind("Month"=month(timestamps)) %>%
     cbind("Day"=mday(timestamps)) %>%
@@ -199,8 +205,8 @@ fittedLineClassifier <- function(state,poll,timestamps,index,threshold,saveGraph
     }
     if(saveGraphsBool)
     {
-      dir <- ..1
-      png(filename = paste0(dir,'Day ',i, '.png'),
+      dir <- directory
+      png(filename = paste0(dir,'/Day ',i, '.png'),
           width = 480, height = 480, units = "px", pointsize = 12,
           bg = "white", res = NA, family = "", restoreConsole = TRUE,
           type = c("windows"))

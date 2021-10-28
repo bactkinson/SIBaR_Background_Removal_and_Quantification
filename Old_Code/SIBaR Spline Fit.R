@@ -18,12 +18,12 @@ secondsFromDayStartConversion <- function(inputVec){
   return(outputVec)
 }
 
-state <- read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_State_Corrected.csv")[,2]
-poll <- read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Poll_Corrected.csv")[,2]
-timestamps <- parse_date_time(as.character(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Time_Corrected.csv")[,2]),orders = c("ymd HMS"),tz="US/Central")
-lat <- read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Lat_Corrected.csv")[,2]
-long <- read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Long_Corrected.csv")[,2]
-index <- read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Index_Corrected.csv")[,2]
+state <- read.csv("C:/Path/Total_NOx_State_Corrected.csv")[,2]
+poll <- read.csv("C:/Path/Total_NOx_Poll_Corrected.csv")[,2]
+timestamps <- parse_date_time(as.character(read.csv("C:/Path/Total_NOx_Time_Corrected.csv")[,2]),orders = c("ymd HMS"),tz="US/Central")
+lat <- read.csv("C:/Path/Total_NOx_Lat_Corrected.csv")[,2]
+long <- read.csv("C:/Path/Total_NOx_Long_Corrected.csv")[,2]
+index <- read.csv("C:/Path/Total_NOx_Index_Corrected.csv")[,2]
 
 total.s1.time <- timestamps[state==1]
 total.s1.poll <- poll[state==1]
@@ -59,8 +59,8 @@ for (i in 1:length(unique.month.days)){
 }
 
 ## Save background signal file
-write.csv(background.signal,"C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_HMMBackground_NOx_NaturalSpline_ByDay_Corrected.csv")
+write.csv(background.signal,"C:/Path/Total_HMMBackground_NOx_NaturalSpline_ByDay_Corrected.csv")
 overall.smooth <- gam(Poll~te(Dayseconds,Yeardays,k=5,bs='tp'),method="REML",data = s1.dataframe,family=gaussian())
 overall.signal <- predict.gam(overall.smooth,newdata=overall.dataframe)
-write.csv(overall.signal,"C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_HMMBackground_NOx_Corrected.csv")
+write.csv(overall.signal,"C:/Path/Total_HMMBackground_NOx_Corrected.csv")
 

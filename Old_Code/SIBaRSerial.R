@@ -182,11 +182,11 @@ n.runs <- 5
 bootstrap.iters <- 100
 # Read in data
 ## CHANGE FILENAME DEPENDING ON POLLUTANT ##
-Poll.times.c1 <- parse_date_time(as.character(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/LST_Car1NOxFinal.csv", header = FALSE),use.names=FALSE)), orders=c("mdy HMS"), tz=Sys.timezone())
-Long.c1 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Long_Raw_Car1.csv", header = FALSE),use.names=FALSE)) 
-Lat.c1 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Lat_Raw_Car1.csv", header = FALSE),use.names=FALSE))
+Poll.times.c1 <- parse_date_time(as.character(unlist(read.csv("C:/Path/LST_Car1NOxFinal.csv", header = FALSE),use.names=FALSE)), orders=c("mdy HMS"), tz=Sys.timezone())
+Long.c1 <- as.vector(unlist(read.csv("C:/Path/NOx_Long_Raw_Car1.csv", header = FALSE),use.names=FALSE)) 
+Lat.c1 <- as.vector(unlist(read.csv("C:/Path/NOx_Lat_Raw_Car1.csv", header = FALSE),use.names=FALSE))
 Index.c1 <- rep(1,length(Long.c1))
-Poll.measurements.c1 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Raw_Car1.csv", header = FALSE),use.names=FALSE)) 
+Poll.measurements.c1 <- as.vector(unlist(read.csv("C:/Path/NOx_Raw_Car1.csv", header = FALSE),use.names=FALSE)) 
 ## Make corrections to data ##
 ## Perform initial NaN purge
 idxNA <- (is.na(Poll.times.c1) | is.na(Long.c1) | is.nan(Lat.c1) | is.na(Index.c1) | is.na(Poll.measurements.c1))
@@ -213,11 +213,11 @@ Poll.smooth.c1 <- Poll.smooth.c1[idxHour]
 Long.c1 <- Long.c1[idxHour]
 Lat.c1 <- Lat.c1[idxHour]
 Index.c1 <- Index.c1[idxHour]
-Poll.times.c2 <- parse_date_time(as.character(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/LST_Car2NOxFinal.csv", header = FALSE),use.names=FALSE)), orders=c("mdy HMS"), tz=Sys.timezone())
-Long.c2 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Long_Raw_Car2.csv", header = FALSE),use.names=FALSE)) 
-Lat.c2 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Lat_Raw_Car2.csv", header = FALSE),use.names=FALSE)) 
+Poll.times.c2 <- parse_date_time(as.character(unlist(read.csv("C:/Path/LST_Car2NOxFinal.csv", header = FALSE),use.names=FALSE)), orders=c("mdy HMS"), tz=Sys.timezone())
+Long.c2 <- as.vector(unlist(read.csv("C:/Path/NOx_Long_Raw_Car2.csv", header = FALSE),use.names=FALSE)) 
+Lat.c2 <- as.vector(unlist(read.csv("C:/Path/NOx_Lat_Raw_Car2.csv", header = FALSE),use.names=FALSE)) 
 Index.c2 <- rep(2,length(Long.c2))
-Poll.measurements.c2 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Raw_Car2.csv", header = FALSE),use.names=FALSE)) 
+Poll.measurements.c2 <- as.vector(unlist(read.csv("C:/Path/NOx_Raw_Car2.csv", header = FALSE),use.names=FALSE)) 
 ## Make Corrections to Data ##
 ## Perform initial nan purge
 idxNA <- (is.na(Poll.times.c2) | is.na(Long.c2) | is.nan(Lat.c2) | is.na(Index.c2) | is.na(Poll.measurements.c2))
@@ -255,12 +255,6 @@ total.poll <- c(c1.res[[1]],c2.res[[1]])
 total.lat <- c(c1.res[[3]],c2.res[[3]])
 total.long <- c(c1.res[[4]],c2.res[[4]])
 total.index <- c(c1.res[[5]],c2.res[[5]])
-# write.csv(total.state,"C:/Users/griffinlab/Box/My Documents/Total_NOx_State_Log.csv")
-# write.csv(total.poll,"C:/Users/griffinlab/Box/My Documents/Total_NOx_Poll_Log.csv")
-# write.csv(total.time,"C:/Users/griffinlab/Box/My Documents/Total_NOx_Time_Log.csv")
-# write.csv(total.lat,"C:/Users/griffinlab/Box/My Documents/Total_NOx_Lat_Log.csv")
-# write.csv(total.long,"C:/Users/griffinlab/Box/My Documents/Total_NOx_Long_Log.csv")
-# write.csv(total.index,"C:/Users/griffinlab/Box/My Documents/Total_NOx_Index_Log.csv")
 total.s1.time <- c(c1.res[[8]],c2.res[[8]])
 total.s1.poll <- c(c1.res[[7]],c2.res[[7]])
 # total.s2.time <- c(c1.res[[10]],c2.res[[10]])
@@ -284,7 +278,7 @@ HMM.signal <- predict.bam(HMM.smooth,newdata = data.frame(Dayseconds=overall.mat
 c1.HMM.signal <- HMM.signal[1:length(Poll.measurements.c1)]
 c2.HMM.signal <- HMM.signal[(length(Poll.measurements.c1)+1):length(HMM.signal)]
 ## Save background signal file
-# write.csv(HMM.signal,"C:/Users/griffinlab/Box/My Documents/Total_HMMBackground_NOx_Log_Test2.csv")
+# write.csv(HMM.signal,"C:/Path/Total_HMMBackground_NOx_Log_Test2.csv")
 # end_time <- Sys.time()
 # total_time <- end_time - start_time
 # total_time

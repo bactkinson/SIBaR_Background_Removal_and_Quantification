@@ -125,33 +125,3 @@ fittedLineClassifier <- function(state,poll,timestamps,index,threshold,dir,saveG
   return(list(classifier,pct.correct))
 }
 
-# state <- read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_State_Revised_Final.csv")[,2]
-# 
-# poll <- read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Poll_Revised_Final.csv")[,2]
-# 
-# timestamps <- parse_date_time(as.character(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Time_Revised_Final.csv")[,2]),orders = c("ymd HMS"),tz="US/Central")
-# 
-# index <- read.csv("C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Index_Revised_Final.csv")[,2]
-
-# dir <- 'C:/Users/bwa2/Documents/Academic Work/Research/SIBaR Background Removal/SIBaR State Time Series/Daily NOx HMM Time Series Rolling Window Classifer 25/'
-# 
-# rollingWindowClassifier(state,poll,timestamps,index,900,25,dir)
-
-# dir <- 'C:/Users/bwa2/Documents/Academic Work/Research/SIBaR Background Removal/SIBaR State Time Series/Daily NOx HMM Time Series Fitted Line Classifier 50/'
-
-# output <- fittedLineClassifier(state,poll,timestamps,index,50,dir,F)
-
-# sens.vec <- seq(5,100,5)
-# pct.correct <- numeric(length(sens.vec))
-# for(i in 1:length(sens.vec)){
-#   pct.correct[i] <- fittedLineClassifier(state,poll,timestamps,index,sens.vec[i],dir,F)
-# }
-# df <- tibble("Threshold_Percent"=sens.vec,"Correct_Class_Percent"=pct.correct)
-# ggplot(data=df,aes(Threshold_Percent,Correct_Class_Percent)) + 
-#   geom_line(size=1) + 
-#   geom_point(size=3,color="red") +
-#   labs(title="Sensitivity Analysis for the Fitted Line Classifier",
-#        x = "Threshold Percentage (%)",
-#        y = "Percentage Classified as Correct (%)") +
-#   theme_classic() +
-#   expand_limits(y=0)

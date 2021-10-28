@@ -260,11 +260,11 @@ partitionCorrection <- function(poll,time,bootstrapIters){
 bootstrap.iters <- 3
 # Read in data
 ## CHANGE FILENAME DEPENDING ON POLLUTANT ##
-Poll.times.c1 <- parse_date_time(as.character(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/LST_Car1_NOx_Revised_Final.csv", header = FALSE),use.names=FALSE)), orders=c("mdy HMS"), tz=Sys.timezone())
-Long.c1 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Long_Raw_Car1_Revised_Final.csv", header = FALSE),use.names=FALSE))
-Lat.c1 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Lat_Raw_Car1_Revised_Final.csv", header = FALSE),use.names=FALSE))
+Poll.times.c1 <- parse_date_time(as.character(unlist(read.csv("C:/Path/To/Data/LST_Car1_NOx_Revised_Final.csv", header = FALSE),use.names=FALSE)), orders=c("mdy HMS"), tz=Sys.timezone())
+Long.c1 <- as.vector(unlist(read.csv("C:/Path/To/Data/NOx_Long_Raw_Car1_Revised_Final.csv", header = FALSE),use.names=FALSE))
+Lat.c1 <- as.vector(unlist(read.csv("C:/Path/To/Data/NOx_Lat_Raw_Car1_Revised_Final.csv", header = FALSE),use.names=FALSE))
 Index.c1 <- rep(1,length(Long.c1))
-Poll.measurements.c1 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Raw_Car1_Revised_Final.csv", header = FALSE),use.names=FALSE))
+Poll.measurements.c1 <- as.vector(unlist(read.csv("C:/Path/To/Data/NOx_Raw_Car1_Revised_Final.csv", header = FALSE),use.names=FALSE))
 ## Make corrections to data ##
 ## Perform initial NaN purge
 idxNA <- (is.na(Poll.times.c1) | is.na(Long.c1) | is.nan(Lat.c1) | is.na(Index.c1) | is.na(Poll.measurements.c1))
@@ -293,11 +293,11 @@ Lat.c1 <- Lat.c1[idxHour]
 Index.c1 <- Index.c1[idxHour]
 ## Do the same process for Car 2 ##
 ## CHANGE FILENAME DEPENDING ON POLLUTANT ##
-Poll.times.c2 <- parse_date_time(as.character(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/LST_Car2_NOx_Revised_Final.csv", header = FALSE),use.names=FALSE)), orders=c("mdy HMS"), tz=Sys.timezone())
-Long.c2 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Long_Raw_Car2_Revised_Final.csv", header = FALSE),use.names=FALSE))
-Lat.c2 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Lat_Raw_Car2_Revised_Final.csv", header = FALSE),use.names=FALSE))
+Poll.times.c2 <- parse_date_time(as.character(unlist(read.csv("C:/Path/To/Data/LST_Car2_NOx_Revised_Final.csv", header = FALSE),use.names=FALSE)), orders=c("mdy HMS"), tz=Sys.timezone())
+Long.c2 <- as.vector(unlist(read.csv("C:/Path/To/Data/NOx_Long_Raw_Car2_Revised_Final.csv", header = FALSE),use.names=FALSE))
+Lat.c2 <- as.vector(unlist(read.csv("C:/Path/To/Data/NOx_Lat_Raw_Car2_Revised_Final.csv", header = FALSE),use.names=FALSE))
 Index.c2 <- rep(2,length(Long.c2))
-Poll.measurements.c2 <- as.vector(unlist(read.csv("C:/Users/bwa2/Documents/Academic Work/Research/EDF Matlab Files/NOx_Raw_Car2_Revised_Final.csv", header = FALSE),use.names=FALSE))
+Poll.measurements.c2 <- as.vector(unlist(read.csv("C:/Path/To/Data/NOx_Raw_Car2_Revised_Final.csv", header = FALSE),use.names=FALSE))
 # ## Make Corrections to Data ##
 # ## Perform initial nan purge
 idxNA <- (is.na(Poll.times.c2) | is.na(Long.c2) | is.nan(Lat.c2) | is.na(Index.c2) | is.na(Poll.measurements.c2))
@@ -335,7 +335,7 @@ total.lat <- c(c1.res[[3]],c2.res[[3]])
 total.long <- c(c1.res[[4]],c2.res[[4]])
 total.index <- c(c1.res[[5]],c2.res[[5]])
 ## Evaluate misclassification
-source('C:/Users/bwa2/Documents/Academic Work/Research/SIBaR Background Removal/SIBaR Scripts/SIBaR Classification Error.R')
+source('C:/Path/To/Data/SIBaR Classification Error.R')
 misclass.eval <- fittedLineClassifier(total.state,total.poll,total.time,total.index,50,dir="Blah",F)
 classified.res <- !misclass.eval[[1]]
 # classified.res <- c(TRUE,FALSE,FALSE,TRUE,FALSE)
@@ -359,10 +359,10 @@ if(any(classified.res)){
     total.state[misclassed.splits[[n]]$Vector_Loc] <- corrected.states
   }
 }
-write.csv(total.state,"C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_State_Test.csv")
-write.csv(total.poll,"C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Poll_Test.csv")
-write.csv(total.time,"C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Time_Test.csv")
-write.csv(total.lat,"C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Lat_Test.csv")
-write.csv(total.long,"C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Long_Test.csv")
-write.csv(total.index,"C:/Users/bwa2/Documents/Academic Work/Research/Processed Data Files/State Files/Total_NOx_Index_test.csv")
+write.csv(total.state,"C:/Path/To/Data/Total_NOx_State_Test.csv")
+write.csv(total.poll,"C:/Path/To/Data/Total_NOx_Poll_Test.csv")
+write.csv(total.time,"C:/Path/To/Data/Total_NOx_Time_Test.csv")
+write.csv(total.lat,"C:/Path/To/Data/Total_NOx_Lat_Test.csv")
+write.csv(total.long,"C:/Path/To/Data/Total_NOx_Long_Test.csv")
+write.csv(total.index,"C:/Path/To/Data/Total_NOx_Index_test.csv")
 #
