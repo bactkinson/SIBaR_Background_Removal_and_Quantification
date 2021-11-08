@@ -20,6 +20,7 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
 
   initial_partition <- partitionPoints(poll,time,bootstrap_iterations,
                                        transformString = transform_string,
+                                       minTimePts = minTimePts,
                                        cores = cores, 
                                        index = index)
   
@@ -31,7 +32,7 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
   ## Initiate the correction routine
   initial_evaluation <- fittedLineClassifier(total_states,total_poll,
                                              total_time,total_index,
-                                             threshold = 50,
+                                             threshold = threshold,
                                              saveGraphsBool = save_misclassifications,
                                              directory = directory)
   
@@ -52,7 +53,7 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
     .[initial_class_res]
     
     for(n in 1:length(misclassed_splits)){
-      corrected_states <- recursiveCorrections(misclassed_splits[[n]],length_tolerance)
+      corrected_states <- recursiveCorrections(misclassed_splits[[n]],tol=length_tolerance,threshold = threshold)
       total_states[misclassed_splits[[n]]$Vector_Loc] <- corrected_states
     }
     
@@ -181,7 +182,7 @@ fittedLineClassifier <- function(state,poll,timestamps,index,threshold,saveGraph
     temp.state <- temp.data$state
     temp.times <- temp.data$timestamps
     lagged.state <- lag(temp.state)
-    transitions <- temp.state != lagged.state
+    transitions <- (temp.state != lagged.state & is.finite(lagged.state))
     trans.times <- temp.times[transitions]
     trans.indices <- which(transitions)
     trans.poll <- numeric(length(trans.times))
@@ -190,27 +191,35 @@ fittedLineClassifier <- function(state,poll,timestamps,index,threshold,saveGraph
       trans.poll[j] <- mean(c(temp.poll[current.index-1],temp.poll[current.index],temp.poll[current.index+1]),na.rm=T)
     }
     temp.df <- data.frame("Time"=trans.times,"Measurement"=trans.poll)
-    trans.line.fit <- lm(Measurement~Time,data=temp.df)
-    trans.line.preds <- predict(trans.line.fit,newdata=data.frame("Time"=temp.times))
-    states.below <- temp.state[temp.poll <= trans.line.preds]
-    states.above <- temp.state[temp.poll > trans.line.preds]
-    pct.above.misclass <- length(which(states.above==1))/length(states.above)*100
-    pct.below.misclass <- length(which(states.below==2))/length(states.below)*100
-    if(pct.above.misclass >= threshold | pct.below.misclass >= threshold){
-      titlestring <- "Misclassified"
-      classifier[i] <- F
-    } else{
-      titlestring <- "Classified correctly"
-      classifier[i] <- T
+    if(nrow(temp.df)==1){
+      if(mean(temp.poll[temp.state==1])>mean(temp.poll[temp.state==2])){titlestring <- "Misclassified"; classifier[i] <- F}
+      else {titlestring <- "Classified correctly"; classifier[i] <- T}
+    } else {
+      trans.line.fit <- lm(Measurement~Time,data=temp.df)
+      # print(temp.df)
+      # print(trans.line.fit)
+      trans.line.preds <- predict(trans.line.fit,newdata=data.frame("Time"=temp.times))
+      states.below <- temp.state[temp.poll <= trans.line.preds]
+      states.above <- temp.state[temp.poll > trans.line.preds]
+      pct.above.misclass <- length(which(states.above==1))/length(states.above)*100
+      pct.below.misclass <- length(which(states.below==2))/length(states.below)*100
+      # plot(temp.poll~temp.times,col=temp.state,ylab="Measurements",xlab="Time")
+      # abline(trans.line.fit,col="green",lty=1,lwd=2)
+      if(pct.above.misclass >= threshold | pct.below.misclass >= threshold){
+        titlestring <- "Misclassified"
+        classifier[i] <- F
+      } else{
+        titlestring <- "Classified correctly"
+        classifier[i] <- T
+      }
     }
     if(saveGraphsBool)
     {
       dir <- directory
       png(filename = paste0(dir,'/Day ',i, '.png'),
           width = 480, height = 480, units = "px", pointsize = 12,
-          bg = "white", res = NA, family = "", restoreConsole = TRUE,
-          type = c("windows"))
-      plot(temp.poll~temp.times,col=temp.state,ylab="ln(NOx+1)",xlab="Time",main=titlestring)
+          bg = "white", res = NA, family = "")
+      plot(temp.poll~temp.times,col=temp.state,ylab="Measurements",xlab="Time",main=titlestring)
       abline(trans.line.fit,col="green",lty=1,lwd=2)
       legend("topright", inset=c(0,0), y.intersp = 1, legend = c("Background", "Source"),  lty = 1, bty = "n", col = c(1,2), cex = 1.2)
       dev.off()  
@@ -280,7 +289,7 @@ partitionCorrection <- function(poll,time,bootstrapIters){
   return(list(poll.a,time.a,states.a,poll.b,time.b,states.b,total.new.states))
 }
 
-recursiveCorrections <- function(misclassed.split,tol){
+recursiveCorrections <- function(misclassed.split,tol,threshold){
   print("Begin model refitting")
   old.series <- list(list(misclassed.split$Pollutant,misclassed.split$Timestamps,misclassed.split$State))
   classified.res <- F
@@ -311,7 +320,7 @@ recursiveCorrections <- function(misclassed.split,tol){
                                      new.series[[k]][[1]],
                                      new.series[[k]][[2]],
                                      idx,
-                                     50)
+                                     threshold)
         classified.res[k] <- temp[[1]]
       } else {
         classified.res[k] <- T

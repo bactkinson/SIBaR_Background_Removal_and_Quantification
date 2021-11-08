@@ -23,8 +23,8 @@ NOx <- demo_data$NOx
 ## partitionPoints function from the SIBaRPartitioningParallel script file
 partitionOutput <- partitionRoutine(NOx,times,25,transform_string = "log",
                                     length_tolerance = 0.05)
-
-## To visualize our point paritions, we can make a simple call to plot.
+                                    
+## To visualize our point partitions, we can make a simple call to plot.
 ## The first list entry of partition output are the measurements input into 
 ## the function, less any measurements corresponding to time periods shorter
 ## than minTimePts.
@@ -33,11 +33,11 @@ partitionOutput <- partitionRoutine(NOx,times,25,transform_string = "log",
 ## The third list entry are the states returned by the partitioning step.
 ## 1 = background, 2 = non-background
 
-plot(Poll~Timestamps,data=partitionOutput,
+plot(Poll~Timestamps,data=separate_days[[i]],
      col=States,
      xlab = "Time",
      ylab = "ln(NOx+1)",
-     main = "Visualizing the partitioning step")
+     main = paste0("Day ",i))
 
 ## Next, we fit a spline to our partitioned data. 
 background <- sibarSplineFit(partitionOutput$Poll,partitionOutput$Timestamps,
@@ -50,5 +50,4 @@ plot(Poll~Timestamps,data=partitionOutput,
      ylab = "ln(NOx+1)",
      main = "Visualizing the partitioning step")
 lines(partitionOutput$Timestamps,background,col="blue",lwd=2)
-
 

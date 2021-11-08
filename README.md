@@ -29,7 +29,7 @@ It's worth noting that if the data contain timestamps from separate days, SIBaR 
 `minTimePts`: The minimum number of time points needed for data to be partitioned. Data taken on days with less than minTimePts are
 removed during the partitioning step. Default is 600.
 
-`cores`: Number of cores to be used in parallelization. Parallelization is implemeted using R parallel library. Default is parallel::detectCores()-2.
+`cores`: Number of cores to be used in parallelization. Parallelization is implemented using R parallel library. Default is parallel::detectCores()-2.
 
 `index`: Optional factor index to be included (e.g. 1 designates set of measurements from Car 1, 2 designates set of measurements from Car 2).
 
