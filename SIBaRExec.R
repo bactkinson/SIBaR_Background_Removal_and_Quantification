@@ -9,7 +9,7 @@ dir <- getwd()
 
 ## Read in the data. If using your own data, be sure to have some process
 ## which accounts for NA removal as functions won't work with NAs inserted.
-demo_data <- read.csv(paste0(dir,"/YiqunData.csv")) %>%
+demo_data <- read.csv(paste0(dir,"/DemoData.csv")) %>%
   mutate("Timestamps"=as.POSIXct(Time,format="%Y-%m-%d %H:%M:%S",tz="US/Central"),.keep="unused") %>%
   mutate("NOx"=Original,.keep="unused") %>%
   drop_na()
