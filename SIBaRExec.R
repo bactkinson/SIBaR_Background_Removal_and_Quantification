@@ -9,7 +9,7 @@ dir <- getwd()
 
 ## Read in the data. If using your own data, be sure to have some process
 ## which accounts for NA removal as functions won't work with NAs inserted.
-demo_data <- read.csv(paste0(dir,"/DemoData.csv")) %>%
+demo_data <- read.csv(paste0(dir,"/YiqunData.csv")) %>%
   mutate("Timestamps"=as.POSIXct(Time,format="%Y-%m-%d %H:%M:%S",tz="US/Central"),.keep="unused") %>%
   mutate("NOx"=Original,.keep="unused") %>%
   drop_na()
@@ -33,12 +33,19 @@ partitionOutput <- partitionRoutine(NOx,times,25,transform_string = "log",
 ## The third list entry are the states returned by the partitioning step.
 ## 1 = background, 2 = non-background
 
-plot(Poll~Timestamps,data=separate_days[[i]],
-     col=States,
-     xlab = "Time",
-     ylab = "ln(NOx+1)",
-     main = paste0("Day ",i))
+separate_days <- partitionOutput %>%
+  mutate(Month = month(Timestamps)) %>%
+  mutate(Day = mday(Timestamps)) %>%
+  group_split(Month,Day,.keep = FALSE)
 
+for(i in 1:length(separate_days)){
+  plot(Poll~Timestamps,data=separate_days[[i]],
+       col=States,
+       xlab = "Time",
+       ylab = "ln(NOx+1)",
+       main = paste0("Day ", i))
+}
+  
 ## Next, we fit a spline to our partitioned data. 
 background <- sibarSplineFit(partitionOutput$Poll,partitionOutput$Timestamps,
                              partitionOutput$States)
