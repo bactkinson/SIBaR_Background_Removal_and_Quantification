@@ -273,17 +273,21 @@ partitionCorrection <- function(poll,time,bootstrapIters){
     states.a[mirror.states.a==2] <- 1
     states.a[mirror.states.a==1] <- 2
   } 
-  if(median(temp.list.a[[1]][state.one.a],na.rm = TRUE)>median(temp.list.a[[1]][state.two.a],na.rm = TRUE)){
-    states.a[mirror.states.a==2] <- 1
-    states.a[mirror.states.a==1] <- 2
+  if(length(temp.list.a[[1]][state.two.a])!=0){
+    if(median(temp.list.a[[1]][state.one.a],na.rm = TRUE)>median(temp.list.a[[1]][state.two.a],na.rm = TRUE)){
+      states.a[mirror.states.a==2] <- 1
+      states.a[mirror.states.a==1] <- 2
+    }
   }
   if(length(temp.list.b[[1]][state.one.b])==0){
     states.b[mirror.states.b==2] <- 1
     states.b[mirror.states.b==1] <- 2
   } 
-  if(median(temp.list.b[[1]][state.one.b],na.rm = TRUE)>median(temp.list.b[[1]][state.two.b],na.rm = TRUE)){
-    states.b[mirror.states.b==2] <- 1
-    states.b[mirror.states.b==1] <- 2
+  if(length(temp.list.b[[1]][state.two.b])!=0){
+    if(median(temp.list.b[[1]][state.one.b],na.rm = TRUE)>median(temp.list.b[[1]][state.two.b],na.rm = TRUE)){
+      states.b[mirror.states.b==2] <- 1
+      states.b[mirror.states.b==1] <- 2
+    }
   }
   total.new.states <- c(states.a,states.b)
   return(list(poll.a,time.a,states.a,poll.b,time.b,states.b,total.new.states))
