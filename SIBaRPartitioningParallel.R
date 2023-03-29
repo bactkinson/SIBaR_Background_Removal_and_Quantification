@@ -17,7 +17,11 @@ partitionRoutine <- function(poll,time,bootstrap_iterations,transform_string="no
                              length_tolerance = 0.05,
                              save_misclassifications = F, 
                              directory = getwd()){
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> c4ff4967849e2e0a7cda68c9fa5aad5faf41e2e3
   initial_partition <- partitionPoints(poll,time,bootstrap_iterations,
                                        transformString = transform_string,
                                        minTimePts = minTimePts,
@@ -146,11 +150,19 @@ partitionPoints <- function(poll,time,bootstrapIters,transformString="none",minT
     mirror.states <- resulting.states
     ## Let Poll.s1 represent the background and let Poll.s2 represent the signal
     ## Background is defined as whichever set of state points has the lower median
+<<<<<<< HEAD
     if(length(unique(resulting.states))==1){
       if(unique(resulting.states)==2){
         resulting.states[mirror.states==2] <- 1
       }
     } else if(median(temp.list[[1]][state.one],na.rm = TRUE)>median(temp.list[[1]][state.two],na.rm = TRUE)){
+=======
+    if(length(temp.list[[1]][state.one])==0){
+      resulting.states[mirror.states==2] <- 1
+      resulting.states[mirror.states==1] <- 2
+    } 
+    if(median(temp.list[[1]][state.one],na.rm = TRUE)>median(temp.list[[1]][state.two],na.rm = TRUE)){
+>>>>>>> c4ff4967849e2e0a7cda68c9fa5aad5faf41e2e3
       resulting.states[mirror.states==2] <- 1
       resulting.states[mirror.states==1] <- 2
     } 
@@ -177,6 +189,7 @@ fittedLineClassifier <- function(state,poll,timestamps,index,threshold,saveGraph
   
   classifier <- logical(length(data_splits))
   for(i in 1:length(data_splits)){
+<<<<<<< HEAD
     # browser()
     if(length(unique(data_splits[[i]]$state))==2){
       temp.data <- data_splits[[i]]
@@ -229,6 +242,56 @@ fittedLineClassifier <- function(state,poll,timestamps,index,threshold,saveGraph
     } else{
       classifier[i] <- T
     }
+=======
+    temp.data <- data_splits[[i]]
+    temp.poll <- temp.data$pollutant
+    temp.state <- temp.data$state
+    temp.times <- temp.data$timestamps
+    lagged.state <- lag(temp.state)
+    transitions <- (temp.state != lagged.state & is.finite(lagged.state))
+    trans.times <- temp.times[transitions]
+    trans.indices <- which(transitions)
+    trans.poll <- numeric(length(trans.times))
+    for(j in 1:length(trans.indices)){
+      current.index <- trans.indices[j]
+      trans.poll[j] <- mean(c(temp.poll[current.index-1],temp.poll[current.index],temp.poll[current.index+1]),na.rm=T)
+    }
+    temp.df <- data.frame("Time"=trans.times,"Measurement"=trans.poll)
+    if(nrow(temp.df)==1){
+      if(mean(temp.poll[temp.state==1])>mean(temp.poll[temp.state==2])){titlestring <- "Misclassified"; classifier[i] <- F}
+      else {titlestring <- "Classified correctly"; classifier[i] <- T}
+    } else {
+      trans.line.fit <- lm(Measurement~Time,data=temp.df)
+      # print(temp.df)
+      # print(trans.line.fit)
+      trans.line.preds <- predict(trans.line.fit,newdata=data.frame("Time"=temp.times))
+      states.below <- temp.state[temp.poll <= trans.line.preds]
+      states.above <- temp.state[temp.poll > trans.line.preds]
+      pct.above.misclass <- length(which(states.above==1))/length(states.above)*100
+      pct.below.misclass <- length(which(states.below==2))/length(states.below)*100
+      # plot(temp.poll~temp.times,col=temp.state,ylab="Measurements",xlab="Time")
+      # abline(trans.line.fit,col="green",lty=1,lwd=2)
+      if(pct.above.misclass >= threshold | pct.below.misclass >= threshold){
+        titlestring <- "Misclassified"
+        classifier[i] <- F
+      } else{
+        titlestring <- "Classified correctly"
+        classifier[i] <- T
+      }
+    }
+    if(saveGraphsBool)
+    {
+      dir <- directory
+      png(filename = paste0(dir,'/Day ',i, '.png'),
+          width = 480, height = 480, units = "px", pointsize = 12,
+          bg = "white", res = NA, family = "")
+      plot(temp.poll~temp.times,col=temp.state,ylab="Measurements",xlab="Time",main=titlestring)
+      abline(trans.line.fit,col="green",lty=1,lwd=2)
+      legend("topright", inset=c(0,0), y.intersp = 1, legend = c("Background", "Source"),  lty = 1, bty = "n", col = c(1,2), cex = 1.2)
+      dev.off()  
+    }
+    
+>>>>>>> c4ff4967849e2e0a7cda68c9fa5aad5faf41e2e3
   }
   pct.correct <- length(which(classifier))/length(classifier)*100
   return(list(classifier,pct.correct))
@@ -273,6 +336,7 @@ partitionCorrection <- function(poll,time,bootstrapIters){
   state.two.b <- states.b==2
   mirror.states.b <- states.b
   
+<<<<<<< HEAD
   if(length(unique(states.a))==1){
     if(unique(states.a)==2){
       states.a[mirror.states.a==2] <- 1
@@ -293,6 +357,29 @@ partitionCorrection <- function(poll,time,bootstrapIters){
   
   total.new.states <- c(states.a,states.b)
   
+=======
+  if(length(temp.list.a[[1]][state.one.a])==0){
+    states.a[mirror.states.a==2] <- 1
+    states.a[mirror.states.a==1] <- 2
+  } 
+  if(length(temp.list.a[[1]][state.two.a])!=0){
+    if(median(temp.list.a[[1]][state.one.a],na.rm = TRUE)>median(temp.list.a[[1]][state.two.a],na.rm = TRUE)){
+      states.a[mirror.states.a==2] <- 1
+      states.a[mirror.states.a==1] <- 2
+    }
+  }
+  if(length(temp.list.b[[1]][state.one.b])==0){
+    states.b[mirror.states.b==2] <- 1
+    states.b[mirror.states.b==1] <- 2
+  } 
+  if(length(temp.list.b[[1]][state.two.b])!=0){
+    if(median(temp.list.b[[1]][state.one.b],na.rm = TRUE)>median(temp.list.b[[1]][state.two.b],na.rm = TRUE)){
+      states.b[mirror.states.b==2] <- 1
+      states.b[mirror.states.b==1] <- 2
+    }
+  }
+  total.new.states <- c(states.a,states.b)
+>>>>>>> c4ff4967849e2e0a7cda68c9fa5aad5faf41e2e3
   return(list(poll.a,time.a,states.a,poll.b,time.b,states.b,total.new.states))
 }
 
